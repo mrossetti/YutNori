@@ -1,4 +1,4 @@
 # YutNori
 Korean board game from TV Show "The Genius"
 
-![Screenshot](screenshot.png)
+<img src="screenshot.PNG" height="400">
