@@ -101,11 +101,11 @@ class StickComb(metaclass=_StickComb):
 
     @property
     def n_U(self):
-        return self.n_unmarked
+        return self._n_unmarked
 
     @property
     def n_M(self):
-        return self.n_marked
+        return self._n_marked
 
 
 class BoardNode(object):
@@ -270,7 +270,11 @@ class TacticalYutNori:
         return self.where.keys()
 
     def owner(self, piece):
-        return self.players[0] if piece > 0 else self.players[1]
+        same_sign_of_player0 = (int(piece > 0) == int(self.players[0] > 0))
+        if same_sign_of_player0:
+            return self.players[0]
+        else:
+            return self.players[1]
 
     def check_winner(self):
         pieces_won = self.board[self.NODE_WON]
@@ -434,7 +438,7 @@ class TacticalYutNori:
         # back-do does not allow piece placement and, on an empty board,
         # since there are no pieces to move, it results in a 'skip turn'
 
-        # capturing enemy pieces or tossing a YUT / MO result in a bonus turn
+        # capturing enemy pieces or tossing a YUT / MO results in a bonus turn
         if capture or self.get_toss_outcome() in (self.YUT, self.MO):
             self.history[self.turn]['bonus_turn'] = True
         else:
@@ -556,8 +560,7 @@ class TacticalYutNori:
             align(row_idx, [str_node(node) for node in nodes_row])
             for row_idx, nodes_row in enumerate(self.graph.LAYOUT)
         ])
-
-        # print
+        
         print(Fore.RESET)
         print('WON =', pieces_won, end='\n')
         print('OUT =', pieces_out, end='\n\n')
@@ -592,9 +595,9 @@ class YutNoriHumVsCom(TacticalYutNori):
     def reset(self, *args, **kwargs):
         com = kwargs.pop('computer', Computer())
         com_goes_first = kwargs.pop('computer_goes_first', False)
-        out = super().reset(*args, **kwargs)
+        obs = super().reset(*args, **kwargs)
         self.config(com, com_goes_first)
-        return out
+        return obs
 
     def config(self, computer, com_goes_first=False):
         self.computer = computer
@@ -625,14 +628,16 @@ class YutNoriHumVsCom(TacticalYutNori):
         self.computer.register_toss_outcome(self.get_toss_outcome())
 
         valid_orig = self.valid_orig_nodes_for_selection()
-        if valid_orig:
-            orig = self.computer.select_orig_node(self.obs, valid_orig)
+        orig = self.computer.select_orig_node(self.obs, valid_orig)
+        
+        if orig in valid_orig:
             self.select_orig_node(orig)
-
-        valid_dest = self.valid_dest_nodes_for_selection()
-        if valid_dest:
+            
+            valid_dest = self.valid_dest_nodes_for_selection()
             dest = self.computer.select_dest_node(self.obs, valid_dest)
-            self.select_dest_node(dest)
+            
+            if dest in valid_dest:
+                self.select_dest_node(dest)
 
         del self._during_computer_turn
 
