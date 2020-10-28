@@ -164,7 +164,7 @@ class BoardGraph(object):
         NE: (E4, (N2, NE2), (N3, CC), (N4, NE4), (NW, NE5)),
         NW: (N4, (W2, NW2), (W3, CC), (W4, NW4), (SW, NW5)),
         SW: (W4, S2, S3, S4, SE),
-        SE: (S4, WON, WON, WON, WON),
+        SE: ((S4, NW5), WON, WON, WON, WON),
         CC: ((NW2, NE2), (NW5, NE5), (SW, SE), (S1, WON), (S2, WON)),
 
         # north-east diagonal
@@ -176,7 +176,7 @@ class BoardGraph(object):
         # north-west diagonal
         NW1: (NW, CC, NW4, NW5, SE),
         NW2: (NW1, NW4, NW5, SE, WON),
-        NW4: (CC, NW5, SE, WON, WON),
+        NW4: (CC, NW5, WON, WON, WON),
         NW5: (NW4, WON, WON, WON, WON),
 
         # straight-line clockwise 1s
