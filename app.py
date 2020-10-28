@@ -167,21 +167,24 @@ class GUI:
     # UPDATE
     def update(self):
 
-        if not self.get_winner():
-
+        if self.get_winner():
+            self.check_replay_selection()
+        
+        else:
+            
             if not self.timer.is_on('turn'):
                 self.timer.start('turn')
-                self.timer.start('delay')
 
-            if self.timer.elapsed('delay') > 0.1:
+            if not self.game.sticks_been_tossed():
+                self.check_sticksets_selection()
+                sel = self.get_stickset_selected()
+                if sel in self.game.valid_stick_pairs:
+                    self.game.toss(sel)
+                    self.timer.start('delay')
 
-                if not self.game.sticks_been_tossed():
-                    self.check_sticksets_selection()
-                    sel = self.get_stickset_selected()
-                    if sel in self.game.valid_stick_pairs:
-                        self.game.toss(sel)
-
-                elif not self.game.orig_node_been_selected():
+             elif self.timer.elapsed('delay') > 0.5:
+                
+                if not self.game.orig_node_been_selected():
                         self.highlight_nodes(self.game.valid_orig_nodes_for_selection())
                         self.check_node_selection(self.hlight_nodes)
                         sel = self.get_node_selected()
@@ -205,10 +208,6 @@ class GUI:
                         self.node_sel = None
                         self.sset_sel = None
                         self.check_winner()
-
-        else:
-
-            self.check_replay_selection()
 
     # DRAW
     def draw(self, surf):
@@ -290,7 +289,7 @@ class GUI:
                 if len(self.game.board[nodekey]) > 1:
                     n_stacked = len(self.game.board[nodekey])
                     text_surf = self.FONT.render(str(n_stacked), True, Color('white'))
-                    text_rect = text_surf.get_rect(); text_rect.center = (x, y)
+                    text_rect = text_surf.get_rect(center=(x, y))
                     surf.blit(text_surf, text_rect)
 
     def draw_sticks(self, surf):
@@ -304,9 +303,10 @@ class GUI:
                 surf.blit(sset_im, xy)
 
     def draw_playerwins(self, surf):
-        w = self.get_winner()
-        if w:
-            surf.blit(self.playerwins_im[w], self.playerwins_rect)
+        winner = self.get_winner()
+        if winner:
+            winner_im = self.playerwins_im[winner]
+            surf.blit(winner_im, winner_im.get_rect(center=self.playerwins_rect.center))
 
     # STATIC IMAGES
     def get_graph_image(self):
@@ -432,9 +432,8 @@ class GUI:
         x1, y1 = self.regout2_rect.topright
         x = x0 + (x1 - x0) // 2
         y = y0 + (y1 - y0) // 2
-        self.playerturn_rect = surf1.get_rect()
-        self.playerturn_rect.center = (x, y)
-
+        self.playerturn_rect = surf1.get_rect(center=(x, y))
+        
         return {self.PLAYER1: surf1,
                 self.PLAYER2: surf2}
 
